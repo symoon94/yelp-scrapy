@@ -12,14 +12,16 @@ class YelpSpider(scrapy.Spider):
             javascript = response.css('script::text').getall()
             java = javascript[12].strip("<!--").strip("-->")
             infolist = json.loads(java)['searchPageProps']['searchMapProps']['mapState']['markers']
-            for i in range(0,len(infoilst)-2):
+            for i in range(0,len(infolist)-2):
+                # import ipdb; ipdb.set_trace()
                 yield {
                     "url" : "https://www.yelp.com" + infolist[i]["url"],
                     "lat" : infolist[i]["location"]["latitude"],
-                    "lon" : infolist[i]["location"]["longitude"],
+                    "lon" : infolist[i]["location"]["longitude"]
                 }
 
         except:
-            import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
+            print("error")
              
 
