@@ -65,15 +65,6 @@ class YelpSpider(scrapy.Spider):
                                 templist.append(categ_info["title"])
 
                             dic[each['markerKey']]['categories'] = templist
-                # import ipdb; ipdb.set_trace()
-                # yield {
-                #     "url" : url,
-                #     "lat" : each["location"]["latitude"],
-                #     "lon" : each["location"]["longitude"]
-                # }
-
-
-                import ipdb; ipdb.set_trace()
 
                 for index, subdic in dic.items():
                     place = Place(url = subdic["url"], lat = subdic["lat"], lon = subdic["lon"], searchActions = subdic["searchActions"], allPhotosHref = subdic["allPhotosHref"], photoHref = subdic["photoHref"], reviewCount = subdic["reviewCount"], name = subdic["name"], rating = subdic["rating"], phone = subdic["phone"], formattedAddress = subdic["formattedAddress"], categories = subdic["categories"])
@@ -82,7 +73,6 @@ class YelpSpider(scrapy.Spider):
 
 
             except Exception as e: 
-                import ipdb; ipdb.set_trace()
                 e.with_traceback
                 print(e)
                 import ipdb; ipdb.set_trace()
