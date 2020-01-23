@@ -8,7 +8,19 @@
 import scrapy
 
 
-class YelpItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class Place(scrapy.Item):
+    url = scrapy.Field()
+    lat = scrapy.Field()
+    lon = scrapy.Field()
+    searchActions = scrapy.Field()
+    allPhotosHref = scrapy.Field()
+    reviewCount = scrapy.Field()
+    name = scrapy.Field()
+    rating = scrapy.Field()
+    phone = scrapy.Field()
+    allPhotosHref = scrapy.Field()
+    photoHref = scrapy.Field()
+    reviewCount = scrapy.Field()
+    formattedAddress = scrapy.Field()
+    categories = scrapy.Field()
+    

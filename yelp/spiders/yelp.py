@@ -1,5 +1,7 @@
 import json
 import scrapy
+from yelp.items import Place
+
 
 URL = "https://www.yelp.com/search?find_desc={category}&find_loc={location}&ns=1&start={page}"
 CATEGORY = "Restaurants"
@@ -63,25 +65,31 @@ class YelpSpider(scrapy.Spider):
                                 templist.append(categ_info["title"])
 
                             dic[each['markerKey']]['categories'] = templist
-
-                        # import ipdb; ipdb.set_trace()
-                        # yield {
-                        #     "url" : url,
-                        #     "lat" : each["location"]["latitude"],
-                        #     "lon" : each["location"]["longitude"]
-                        # }
-
-
-                import ipdb; ipdb.set_trace()
-
-            except: 
                 # import ipdb; ipdb.set_trace()
-                print("error")
+                # yield {
+                #     "url" : url,
+                #     "lat" : each["location"]["latitude"],
+                #     "lon" : each["location"]["longitude"]
+                # }
+
+
                 import ipdb; ipdb.set_trace()
 
-        elif response.url.startswith("https://www.yelp.com/biz"):
+                for index, subdic in dic.items():
+                    place = Place(url = subdic["url"], lat = subdic["lat"], lon = subdic["lon"], searchActions = subdic["searchActions"], allPhotosHref = subdic["allPhotosHref"], photoHref = subdic["photoHref"], reviewCount = subdic["reviewCount"], name = subdic["name"], rating = subdic["rating"], phone = subdic["phone"], formattedAddress = subdic["formattedAddress"], categories = subdic["categories"])
+                
+                    yield place
+
+
+            except Exception as e: 
+                import ipdb; ipdb.set_trace()
+                e.with_traceback
+                print(e)
+                import ipdb; ipdb.set_trace()
+
+        # elif response.url.startswith("https://www.yelp.com/biz"):
             
-            pass
+        #     pass
 
 
 

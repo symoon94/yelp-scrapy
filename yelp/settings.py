@@ -62,11 +62,20 @@ CONCURRENT_REQUESTS_PER_IP = 16
 #    'scrapy.extensions.telnet.TelnetConsole': None,
 #}
 
-# Configure item pipelines
+# Mongodb Settings
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'yelp.pipelines.YelpPipeline': 300,
-#}
+ITEM_PIPELINES = {
+   'yelp.pipelines.YelpPipeline': 300,
+   'scrapy_mongodb.MongoDBPipeline': 300,
+}
+
+MONGODB_URI = 'mongodb://localhost:27017'
+MONGODB_DATABASE = 'scrapy'
+MONGODB_COLLECTION = 'places'
+
+MONGODB_UNIQUE_KEY = 'url'
+
+MONGODB_SEPARATE_COLLECTIONS = True
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
