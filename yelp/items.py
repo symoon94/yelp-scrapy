@@ -23,4 +23,9 @@ class Place(scrapy.Item):
     reviewCount = scrapy.Field()
     formattedAddress = scrapy.Field()
     categories = scrapy.Field()
+
+class Review(scrapy.Item):
+    ratingValue = scrapy.Field()
+    datePublished = scrapy.Field()
+    url = scrapy.Field()
     
