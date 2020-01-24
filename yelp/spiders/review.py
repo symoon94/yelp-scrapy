@@ -10,116 +10,34 @@ LOCATION = "Tucson"
 
 class YelpSpider(scrapy.Spider):
     name = "review"
+    # collection_name = name
     def __init__(self):
         self.db = MongoClient()
-        
-        import ipdb; ipdb.set_trace()
+
+        # self.mongo_uri = 'mongodb://localhost:27017'
+        # self.mongo_db = 'scrapy'
+        # self.mongo_db = MongoClient(self.mongo_uri)[self.mongo_db]
+        # import ipdb; ipdb.set_trace()
+        # self.client = MongoClient(self.mongo_uri)
+        # self.db = self.client[self.mongo_db]
+
         self.items = self.db.scrapy.yelp.find()
-        self.start_urls = ["https://www.yelp.com" + item["url"] for item in self.items]
-        import ipdb; ipdb.set_trace()
+
+        self.urlist = []
+        for item in self.items:
+            self.urlist += [ f"https://www.yelp.com{item['url']}?start={page}" for page in range(0, item["reviewCount"]//10*10 + 1, 20)]
+
+        self.start_urls = self.urlist
 
     def parse(self, response):
-        try: 
-            dic = {}
-            infolist = json.loads(response.css('script[type*="application/json"]').getall()[1].split("<!--")[1].strip("--></script>"))['searchPageProps']
-            
-            mapinfo = infolist['searchMapProps']['mapState']['markers']
-            resultinfo = infolist['searchResultsProps']['searchResults'] 
-
-            for each in mapinfo:
-                if 'label' in each.keys():
-                    index = int(each['label'])
-
-                    small_dic = {}
-                    
-                    url = each["url"]
-                    lat = each["location"]["latitude"]
-                    lon = each["location"]["longitude"]
-                    small_dic["url"] = url
-                    small_dic["lat"] = lat
-                    small_dic["lon"] = lon
-
-                    dic[index] = small_dic
-
-            for each in resultinfo:
-                if 'markerKey' in each.keys():
-                    if each['markerKey'] in dic:
-
-                        templist = []
-                        for rsv_dlvry_info in each["searchActions"]:
-                            descr = rsv_dlvry_info["content"]["text"]["text"]
-                            templist.append(descr)
-
-                        dic[each['markerKey']]["searchActions"] = templist
-
-                        photo_info = each['scrollablePhotos']
-                        dic[each['markerKey']]['allPhotosHref'] = photo_info['allPhotosHref']
-                        dic[each['markerKey']]['photoHref'] = photo_info['photoList'][0]["src"]
-
-                        business_result = each['searchResultBusiness']
-                        dic[each['markerKey']]['reviewCount'] = business_result['reviewCount']
-                        dic[each['markerKey']]['name'] = business_result['name']
-                        dic[each['markerKey']]['rating'] = business_result['rating']
-                        dic[each['markerKey']]['phone'] = business_result['phone']
-                        dic[each['markerKey']]['rating'] = business_result['rating']
-                        dic[each['markerKey']]['formattedAddress'] = business_result['formattedAddress']
-
-                        templist = []
-                        for categ_info in business_result['categories']:
-                            templist.append(categ_info["title"])
-
-                        dic[each['markerKey']]['categories'] = templist
-
-            for index, subdic in dic.items():
-                place = Place(url = subdic["url"], lat = subdic["lat"], lon = subdic["lon"], searchActions = subdic["searchActions"], allPhotosHref = subdic["allPhotosHref"], photoHref = subdic["photoHref"], reviewCount = subdic["reviewCount"], name = subdic["name"], rating = subdic["rating"], phone = subdic["phone"], formattedAddress = subdic["formattedAddress"], categories = subdic["categories"])
-            
-                yield place
+        try:
+            reviews = json.loads(response.css('script[type*="application/ld+json"]').getall()[-1].strip('<script type="application/ld+json">').strip('\n'))["review"]
+            url = response.url.strip('https://www.yelp.com')
+            for rv in reviews:
+                review = Review(url = url, ratingValue = rv["reviewRating"]["ratingValue"], datePublished = rv["datePublished"])
+                yield review
 
 
         except Exception as e: 
             e.with_traceback
             print(e)
-            import ipdb; ipdb.set_trace()
-
-        # elif response.url.startswith("https://www.yelp.com/biz"):
-            
-        #     pass
-
-
-
-
-# class YelpSpider(scrapy.Spider):
-#     name = "yelp"
-#     start_urls = ["https://www.yelp.com/biz/prep-and-pastry-tucson-7"]
-
-#     def parse(self, response):
-#         import ipdb; ipdb.set_trace()
-#         try: 
-#             import ipdb; ipdb.set_trace()
-#             javascript = response.css('script::text').getall()
-#             java = javascript[12].strip("<!--").strip("-->")
-#             infolist = json.loads(java)['searchPageProps']['searchMapProps']['mapState']['markers']
-#             for i in range(0,len(infolist)-2):
-#                 url = "https://www.yelp.com" + infolist[i]["url"]
-#                 import ipdb; ipdb.set_trace()
-#                 yield {
-#                     "url" : url,
-#                     "lat" : infolist[i]["location"]["latitude"],
-#                     "lon" : infolist[i]["location"]["longitude"]
-#                 }
-
-
-
-#         except:
-                # TODO: debug 
-                
-#             reviews = json.loads(javascript.getall()[-1].strip('<script type="application/ld+json">').strip('\n'))["review"]
-#             for i in range(len(reviews)):
-#                 rating_val = reviews[i]["reviewRating"]["ratingValue"]
-#                 date = reviews[i]["datePublished"]
-
-#             # import ipdb; ipdb.set_trace()
-#             print("error")
-#              response.css('script[type*="applicatio
-# n/json"]').getall()
-

@@ -40,7 +40,6 @@ class YelpSpider(scrapy.Spider):
                 for each in resultinfo:
                     if 'markerKey' in each.keys():
                         if each['markerKey'] in dic:
-
                             templist = []
                             for rsv_dlvry_info in each["searchActions"]:
                                 descr = rsv_dlvry_info["content"]["text"]["text"]
