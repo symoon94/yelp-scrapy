@@ -62,12 +62,21 @@ API_SCRAPOXY_PASSWORD = 'MSY4959msy!'
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-   'scrapoxy.downloadmiddlewares.proxy.ProxyMiddleware': 100,
-   'scrapoxy.downloadmiddlewares.wait.WaitMiddleware': 101,
-   'scrapoxy.downloadmiddlewares.scale.ScaleMiddleware': 102,
-   'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': None,
-   'yelp.middlewares.YelpDownloaderMiddleware': 543,
+   'scrapy.downloadermiddleware.useragent.UserAgentMiddleware' : None,
+   'yelp.middlewares.RotateUserAgentMiddleware' :400,
+   # 'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+   # 'scrapy.downloadermiddlewares.retry.RetryMiddleware': None,
+   # 'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400,
+   # 'scrapy_fake_useragent.middleware.RetryUserAgentMiddleware': 401,
+   # # 'scrapoxy.downloadmiddlewares.proxy.ProxyMiddleware': 100,
+   # # 'scrapoxy.downloadmiddlewares.wait.WaitMiddleware': 101,
+   # # 'scrapoxy.downloadmiddlewares.scale.ScaleMiddleware': 102,
+   # # 'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': None,
+   # 'yelp.middlewares.YelpDownloaderMiddleware': 543,
 }
+
+# scrapy-proxies   
+RANDOM_UA_PER_PROXY =  True
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html

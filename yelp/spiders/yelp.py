@@ -90,15 +90,16 @@ class YelpSpider(scrapy.Spider):
             for rv in reviews:
 
                 datePublished = rv["datePublished"]
+                datePublished = " ".join(datePublished.split("-")[:2])
                 if not url.startswith("/"):
                     url = "/" + url
                 ratingValue = rv["reviewRating"]["ratingValue"]
 
                 doc = self.collection.find_one({"url":url})
                 if datePublished in doc["reviews"]:
-                    self.collection.find_one_and_update({"url":url}, { '$inc': { f"reviews.{rv['datePublished']}.count": 1} }, upsert=False)
+                    self.collection.find_one_and_update({"url":url}, { '$inc': { f"reviews.{datePublished}.count": 1} }, upsert=False)
                     existing_ratingValue = self.collection.find_one({"url":url})["reviews"][datePublished]["ratingValue"]
-                    self.collection.find_one_and_update({"url":url}, { '$set': { f"reviews.{rv['datePublished']}.ratingValue": existing_ratingValue + ratingValue} }, upsert=False)
+                    self.collection.find_one_and_update({"url":url}, { '$set': { f"reviews.{datePublished}.ratingValue": existing_ratingValue + ratingValue} }, upsert=False)
                 else:
-                    self.collection.find_one_and_update({"url":url}, { '$set': { "reviews": {datePublished : {"count" : 1, "ratingValue" : ratingValue}}} })
+                    self.collection.find_one_and_update({"url":url}, { '$set': { f"reviews.{datePublished}" : {"count" : 1, "ratingValue" : ratingValue}} })
             
