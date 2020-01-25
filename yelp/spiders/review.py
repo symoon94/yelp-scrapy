@@ -24,17 +24,18 @@ class YelpSpider(scrapy.Spider):
         self.items = self.db.scrapy.yelp.find()
 
         self.urlist = []
-        for item in self.items:
-            self.urlist += [ f"https://www.yelp.com{item['url']}?start={page}" for page in range(0, item["reviewCount"]//10*10 + 1, 20)]
+        # for item in self.items:
+        #     self.urlist += [ f"https://www.yelp.com{item['url']}?start={page}" for page in range(0, item["reviewCount"]//10*10 + 1, 20)]
 
-        self.start_urls = self.urlist
+        # self.start_urls = self.urlist
+        self.start_urls = ["https://www.yelp.com/biz/the-parish-tucson?start=20", "https://www.yelp.com/biz/the-parish-tucson?start=40", "https://www.yelp.com/biz/tito-and-pep-tucson-2?start=160"]
 
     def parse(self, response):
         try:
             reviews = json.loads(response.css('script[type*="application/ld+json"]').getall()[-1].strip('<script type="application/ld+json">').strip('\n'))["review"]
-            url = response.url.strip('https://www.yelp.com')
+            url = response.url.strip('https://www.yelp.com').split("?start=")[0]
             for rv in reviews:
-                review = Review(url = url, ratingValue = rv["reviewRating"]["ratingValue"], datePublished = rv["datePublished"])
+                review = Review(datePublished = rv["datePublished"], url = url, ratingValue = rv["reviewRating"]["ratingValue"])
                 yield review
 
 

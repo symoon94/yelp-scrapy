@@ -1,6 +1,8 @@
 import json
 import scrapy
 from yelp.items import Place
+from yelp.items import Review
+from pymongo import MongoClient
 
 
 URL = "https://www.yelp.com/search?find_desc={category}&find_loc={location}&ns=1&start={page}"
@@ -65,56 +67,38 @@ class YelpSpider(scrapy.Spider):
 
                             dic[each['markerKey']]['categories'] = templist
 
+                urlist = []
                 for index, subdic in dic.items():
-                    place = Place(url = subdic["url"], lat = subdic["lat"], lon = subdic["lon"], searchActions = subdic["searchActions"], allPhotosHref = subdic["allPhotosHref"], photoHref = subdic["photoHref"], reviewCount = subdic["reviewCount"], name = subdic["name"], rating = subdic["rating"], phone = subdic["phone"], formattedAddress = subdic["formattedAddress"], categories = subdic["categories"])
-                
+                    place = Place(url = subdic["url"], lat = subdic["lat"], lon = subdic["lon"], searchActions = subdic["searchActions"], allPhotosHref = subdic["allPhotosHref"], photoHref = subdic["photoHref"], reviewCount = subdic["reviewCount"], name = subdic["name"], rating = subdic["rating"], phone = subdic["phone"], formattedAddress = subdic["formattedAddress"], categories = subdic["categories"], reviews = {})
                     yield place
+
+                    urlist += [ f"https://www.yelp.com{subdic['url']}?start={page}" for page in range(0, subdic["reviewCount"]//10*10 + 1, 20)]
+                    for url in urlist:
+                        yield scrapy.Request(url,meta=place, callback=self.parse)
 
 
             except Exception as e: 
                 e.with_traceback
                 print(e)
-                import ipdb; ipdb.set_trace()
 
-        # elif response.url.startswith("https://www.yelp.com/biz"):
+        elif response.url.startswith("https://www.yelp.com/biz"):
+            self.db = MongoClient()
+            self.collection = self.db.scrapy.yelp
+            reviews = json.loads(response.css('script[type*="application/ld+json"]').getall()[-1].strip('<script type="application/ld+json">').strip('\n'))["review"]
+
+            url = response.url.strip('https://www.yelp.com').split("?start=")[0]
+            for rv in reviews:
+
+                datePublished = rv["datePublished"]
+                if not url.startswith("/"):
+                    url = "/" + url
+                ratingValue = rv["reviewRating"]["ratingValue"]
+
+                doc = self.collection.find_one({"url":url})
+                if datePublished in doc["reviews"]:
+                    self.collection.find_one_and_update({"url":url}, { '$inc': { f"reviews.{rv['datePublished']}.count": 1} }, upsert=False)
+                    existing_ratingValue = self.collection.find_one({"url":url})["reviews"][datePublished]["ratingValue"]
+                    self.collection.find_one_and_update({"url":url}, { '$set': { f"reviews.{rv['datePublished']}.ratingValue": existing_ratingValue + ratingValue} }, upsert=False)
+                else:
+                    self.collection.find_one_and_update({"url":url}, { '$set': { "reviews": {datePublished : {"count" : 1, "ratingValue" : ratingValue}}} })
             
-        #     pass
-
-
-
-
-# class YelpSpider(scrapy.Spider):
-#     name = "yelp"
-#     start_urls = ["https://www.yelp.com/biz/prep-and-pastry-tucson-7"]
-
-#     def parse(self, response):
-#         import ipdb; ipdb.set_trace()
-#         try: 
-#             import ipdb; ipdb.set_trace()
-#             javascript = response.css('script::text').getall()
-#             java = javascript[12].strip("<!--").strip("-->")
-#             infolist = json.loads(java)['searchPageProps']['searchMapProps']['mapState']['markers']
-#             for i in range(0,len(infolist)-2):
-#                 url = "https://www.yelp.com" + infolist[i]["url"]
-#                 import ipdb; ipdb.set_trace()
-#                 yield {
-#                     "url" : url,
-#                     "lat" : infolist[i]["location"]["latitude"],
-#                     "lon" : infolist[i]["location"]["longitude"]
-#                 }
-
-
-
-#         except:
-                # TODO: debug 
-                
-#             reviews = json.loads(javascript.getall()[-1].strip('<script type="application/ld+json">').strip('\n'))["review"]
-#             for i in range(len(reviews)):
-#                 rating_val = reviews[i]["reviewRating"]["ratingValue"]
-#                 date = reviews[i]["datePublished"]
-
-#             # import ipdb; ipdb.set_trace()
-#             print("error")
-#              response.css('script[type*="applicatio
-# n/json"]').getall()
-

@@ -23,6 +23,7 @@ class Place(scrapy.Item):
     reviewCount = scrapy.Field()
     formattedAddress = scrapy.Field()
     categories = scrapy.Field()
+    reviews = scrapy.Field()
 
 class Review(scrapy.Item):
     ratingValue = scrapy.Field()
