@@ -96,10 +96,15 @@ class YelpSpider(scrapy.Spider):
                 ratingValue = rv["reviewRating"]["ratingValue"]
 
                 doc = self.collection.find_one({"url":url})
-                if datePublished in doc["reviews"]:
-                    self.collection.find_one_and_update({"url":url}, { '$inc': { f"reviews.{datePublished}.count": 1} }, upsert=False)
-                    existing_ratingValue = self.collection.find_one({"url":url})["reviews"][datePublished]["ratingValue"]
-                    self.collection.find_one_and_update({"url":url}, { '$set': { f"reviews.{datePublished}.ratingValue": existing_ratingValue + ratingValue} }, upsert=False)
-                else:
-                    self.collection.find_one_and_update({"url":url}, { '$set': { f"reviews.{datePublished}" : {"count" : 1, "ratingValue" : ratingValue}} })
+                try:
+                    if datePublished in doc["reviews"]:
+                        self.collection.find_one_and_update({"url":url}, { '$inc': { f"reviews.{datePublished}.count": 1} }, upsert=False)
+                        existing_ratingValue = self.collection.find_one({"url":url})["reviews"][datePublished]["ratingValue"]
+                        self.collection.find_one_and_update({"url":url}, { '$set': { f"reviews.{datePublished}.ratingValue": existing_ratingValue + ratingValue} }, upsert=False)
+                    else:
+                        self.collection.find_one_and_update({"url":url}, { '$set': { f"reviews.{datePublished}" : {"count" : 1, "ratingValue" : ratingValue}} })
+                except Exception as e:
+                    e.with_traceback
+                    print(e)
+                    print("doc:", doc)
             
